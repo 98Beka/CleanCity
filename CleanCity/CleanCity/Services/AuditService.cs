@@ -1,7 +1,7 @@
 ﻿using CleanCity.Data;
 
 
-namespace digitization.Services;
+namespace CleanCity.Services;
 
 public class AuditService
 {
