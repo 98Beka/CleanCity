@@ -1,5 +1,6 @@
 ﻿using CleanCity.Data;
 using CleanCity.DTO;
+using CleanCity.Helpers;
 using CleanCity.Models;
 using System.Net;
 
@@ -8,7 +9,6 @@ namespace CleanCity.Services
     public class RatingService
     {
         private readonly DataContext _context;
-        private float? maxPoint = null;
         public RatingService(DataContext context)
         {
             _context = context;
@@ -31,7 +31,7 @@ namespace CleanCity.Services
 
             _context.Likes.Add(newLike);
             _context.SaveChanges();
-            maxPoint = _context.Likes.GroupBy(a => new { a.PointOnTheMapId, a.Value }).Select(a => a.Select(b => b.Value).Sum()).Max();
+            Constants.MaxPoint = _context.Likes.GroupBy(a => new { a.PointOnTheMapId, a.Value }).Select(a => a.Select(b => b.Value).Sum()).Max();
             return true;
         }
         public bool DeleteLikes(long pointId)
@@ -47,7 +47,7 @@ namespace CleanCity.Services
 
             _context.Likes.RemoveRange(likes);
             _context.SaveChanges();
-            maxPoint = _context.Likes.GroupBy(a => new { a.PointOnTheMapId, a.Value }).Select(a => a.Select(b => b.Value).Sum()).Max();
+            Constants.MaxPoint = _context.Likes.GroupBy(a => new { a.PointOnTheMapId, a.Value }).Select(a => a.Select(b => b.Value).Sum()).Max();
             return true;
         }
         public float GetRating(long pointId)
@@ -59,14 +59,14 @@ namespace CleanCity.Services
                 return 0.0F;
             }
 
-            if(maxPoint == null)
+            if(Constants.MaxPoint == null)
             {
-               maxPoint = _context.Likes.GroupBy(a => new { a.PointOnTheMapId, a.Value}).Select(a => a.Select(b => b.Value).Sum()).Max();
+                Constants.MaxPoint = _context.Likes.GroupBy(a => new { a.PointOnTheMapId, a.Value}).Select(a => a.Select(b => b.Value).Sum()).Max();
             }
 
             var pointLikes = _context.Likes.Where(a => a.PointOnTheMapId == pointId).Select(a => a.Value).Sum();
 
-            return pointLikes / maxPoint.Value;
+            return pointLikes / Constants.MaxPoint.Value;
         }
     }
 }
