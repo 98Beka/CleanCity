@@ -13,6 +13,7 @@ namespace CleanCity.Controllers {
         public ChatController(DataContext dataContext) {
             _dataContext = dataContext;
         }
+        [HttpPost("Create")]
         public IActionResult AddMessage(MessageDto message) {
             var res = _dataContext.PointOnTheMaps.Where(x => x.Id == message.PointId).Any();
             if(res == null)
