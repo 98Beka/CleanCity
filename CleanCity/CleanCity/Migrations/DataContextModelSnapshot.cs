@@ -24,54 +24,62 @@ namespace CleanCity.Migrations
 
 
             modelBuilder.Entity("CleanCity.Models.Message", b =>
+            {
+                b.Property<long>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bigint");
+
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                b.Property<DateTime>("CreatedAt")
+                    .HasColumnType("timestamp without time zone");
+
+                b.Property<long>("PointId")
+                    .HasColumnType("bigint");
+
+                b.Property<DateTime?>("UpdatedAt")
+                    .HasColumnType("timestamp without time zone");
+
+                b.Property<string>("UserEmail")
+                    .IsRequired()
+                    .HasColumnType("text");
+
+                b.Property<string>("Value")
+                    .IsRequired()
+                    .HasColumnType("text");
+
+                b.HasKey("Id");
+
+                b.ToTable("Messages");
+            });
+
             modelBuilder.Entity("CleanCity.Models.Like", b =>
+            {
+                b.Property<long>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("bigint");
 
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                b.Property<string>("Ip")
+                    .IsRequired()
+                    .HasColumnType("text");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                b.Property<long>("PointOnTheMapId")
+                    .HasColumnType("bigint");
 
-                    b.Property<long>("PointId")
-                        .HasColumnType("bigint");
+                b.Property<string>("UserEmail")
+                    .HasColumnType("text");
 
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                b.Property<int>("Value")
+                    .HasColumnType("integer");
 
-                    b.Property<string>("UserEmail")
-                        .IsRequired()
-                        .HasColumnType("text");
+                b.HasKey("Id");
 
-                    b.Property<string>("Value")
-                        .IsRequired()
-                        .HasColumnType("text");
+                b.HasIndex("PointOnTheMapId");
 
-                    b.HasKey("Id");
-
-                    b.ToTable("Messages");
-                    b.Property<string>("Ip")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<long>("PointOnTheMapId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("UserEmail")
-                        .HasColumnType("text");
-
-                    b.Property<int>("Value")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PointOnTheMapId");
-
-                    b.ToTable("Likes");
-                });
+                b.ToTable("Likes");
+            });
 
             modelBuilder.Entity("CleanCity.Models.Photo", b =>
                 {
