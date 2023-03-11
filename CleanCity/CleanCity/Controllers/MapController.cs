@@ -60,6 +60,7 @@ namespace CleanCity.Controllers
         {
             var pointOnTheMap = new PointOnTheMap
             {
+                IsCleaned = false,
                 Phone = pointOnTheMapDto.Phone,
                 Description = pointOnTheMapDto.Description,
                 FIO = pointOnTheMapDto.FIO,
@@ -132,6 +133,7 @@ namespace CleanCity.Controllers
             return BadRequest("Like Exeption");
         }
         [HttpDelete("Delete")]
+        [Authorize(Roles = RoleService.AdminRole)]
         public ActionResult Delete(long Id)
         {
             var point = _context.PointOnTheMaps.Include(a => a.Photos).FirstOrDefault(a => a.Id == Id);
@@ -210,12 +212,19 @@ namespace CleanCity.Controllers
                 point.IsPublish = true;
                 _context.PointOnTheMaps.Update(point);
                 _context.SaveChanges();
-
-                return Ok();
+            }
+            if (action == Constants.Action.Delete)
+            {
+                _context.PointOnTheMaps.Remove(point);
+                _context.SaveChanges();
+            }
+            if (action == Constants.Action.Clean)
+            {
+                point.IsCleaned = true;
+                _context.PointOnTheMaps.Update(point);
+                _context.SaveChanges();
             }
 
-            _context.PointOnTheMaps.Remove(point);
-            _context.SaveChanges();
             return Ok();
         }
         [HttpPost("Deny")]
@@ -233,9 +242,25 @@ namespace CleanCity.Controllers
             {
                 _context.PointOnTheMaps.Remove(point);
                 _context.SaveChanges();
-
-                return Ok();
             }
+
+            return Ok();
+        }
+        [HttpPost("Clean")]
+        [Authorize(Roles = RoleService.AdminRole)]
+        public ActionResult Clean(long pointId)
+        {
+            var point = _context.PointOnTheMaps.Include(a => a.Photos).FirstOrDefault(a => a.Id == pointId);
+
+            if (point == null)
+            {
+                return NotFound();
+            }
+
+            point.IsCleaned = true;
+            _context.PointOnTheMaps.Update(point);
+            _context.SaveChanges();
+
             return Ok();
         }
     }

@@ -6,7 +6,8 @@
         public enum Action
         {
             Add,
-            Delete
+            Delete,
+            Clean
         }
 
     }

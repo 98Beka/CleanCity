@@ -3,6 +3,7 @@
     public class PointOnTheMapDTO
     {
         public long Id { get; set; }
+        public bool IsCleaned { get; set; }
         public string Phone { get; set; }
         public string Description { get; set; }
         public string FIO { get; set; }
