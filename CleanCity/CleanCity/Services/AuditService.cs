@@ -1,6 +1,4 @@
 ﻿using CleanCity.Data;
-
-
 namespace CleanCity.Services;
 
 public class AuditService
