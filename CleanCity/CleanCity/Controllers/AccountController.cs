@@ -74,7 +74,7 @@ namespace CleanCity.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, new ResponseVM { Status = "Error", Message = "User already exists!" });
 
             IdentityUser user = new() {
-                UserName = model.Email,
+                UserName = model.Nickname,
                 Email = model.Email,
                 SecurityStamp = Guid.NewGuid().ToString(),
             };
