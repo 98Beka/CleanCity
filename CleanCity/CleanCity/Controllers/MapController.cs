@@ -24,7 +24,7 @@ namespace CleanCity.Controllers
             _appEnvironment = appEnvironment;
         }
 
-        [HttpGet("PointsOnTheMap")]
+        [HttpGet("PointsOnTheMaps")]
         public async Task<IEnumerable<PointOnTheMapDTO>> GetAll()
         {
             var points = await _context.PointOnTheMaps.Include(a => a.Photos).ToListAsync();
@@ -104,6 +104,19 @@ namespace CleanCity.Controllers
             _context.SaveChanges();
             return Ok();
         }
+        [HttpDelete("Delete")]
+        public ActionResult Delete(long Id)
+        {
+            var point = _context.PointOnTheMaps.Include(a => a.Photos).FirstOrDefault(a => a.Id == Id);
 
+            if (point == null)
+            {
+                return NotFound();
+            }
+
+            _context.PointOnTheMaps.Remove(point);
+            _context.SaveChanges();
+            return Ok();
+        }
     }
 }
