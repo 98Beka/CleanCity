@@ -9,6 +9,7 @@ namespace CleanCity.Data
 
         public DbSet<PointOnTheMap> PointOnTheMaps { get; set; }
         public DbSet<Photo> Photos { get; set; }
+        public DbSet<Message> Messages { get; set; }
 
         public DataContext(DbContextOptions<DataContext> options)
             : base(options) {
