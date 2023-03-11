@@ -19,23 +19,48 @@ namespace CleanCity.Controllers
         private readonly DataContext _context;
         private readonly IMapper _mapper;
         private readonly IWebHostEnvironment _appEnvironment;
+        private readonly RatingService _ratingService;
 
-        public MapController(DataContext context, IMapper mapper, IWebHostEnvironment appEnvironment)
+        public MapController(DataContext context, IMapper mapper, IWebHostEnvironment appEnvironment, RatingService ratingService)
         {
             _context = context;
             _mapper = mapper;
             _appEnvironment = appEnvironment;
+            _ratingService = ratingService;
         }
 
         [HttpGet("PointsOnTheMaps")]
         public async Task<IEnumerable<PointOnTheMapDTO>> GetAll()
         {
-            var points = await _context.PointOnTheMaps.Include(a => a.Photos).ToListAsync();
+            var points = await _context.PointOnTheMaps.Where(a => a.IsPublish).Include(a => a.Photos).ToListAsync();
             var res = new List<PointOnTheMapDTO>();
 
             foreach (var point in points)
             {
                 var tempPoint = _mapper.Map<PointOnTheMapDTO>(point);
+                tempPoint.Rating = _ratingService.GetRating(tempPoint.Id);
+                tempPoint.FilesBase64 = new List<string>();
+
+                foreach (var photo in point.Photos)
+                {
+                    tempPoint.FilesBase64.Add(photo.ContentBase64String);
+                }
+
+                res.Add(tempPoint);
+            }
+            return res;
+        }
+        [HttpGet("UnPublishedPointsOnTheMaps")]
+        [Authorize(Roles = RoleService.AdminRole)]
+        public async Task<IEnumerable<PointOnTheMapDTO>> GetAllUnPublished()
+        {
+            var points = await _context.PointOnTheMaps.Where(a => !a.IsPublish).Include(a => a.Photos).ToListAsync();
+            var res = new List<PointOnTheMapDTO>();
+
+            foreach (var point in points)
+            {
+                var tempPoint = _mapper.Map<PointOnTheMapDTO>(point);
+                tempPoint.Rating = _ratingService.GetRating(tempPoint.Id);
                 tempPoint.FilesBase64 = new List<string>();
 
                 foreach (var photo in point.Photos)
@@ -56,7 +81,6 @@ namespace CleanCity.Controllers
                 Description = pointOnTheMapDto.Description,
                 FIO = pointOnTheMapDto.FIO,
                 Email = pointOnTheMapDto.Email,
-                Rating = pointOnTheMapDto.Rating,
                 Latitude = pointOnTheMapDto.Address[0],
                 Longitude = pointOnTheMapDto.Address[1],
                 CreatedAt = DateTime.Now,
@@ -105,7 +129,21 @@ namespace CleanCity.Controllers
 
             _context.PointOnTheMaps.Add(pointOnTheMap);
             _context.SaveChanges();
-            return Ok();
+
+            var ip = Request.HttpContext.Connection.RemoteIpAddress.ToString();
+
+            var likeDTO = new LikeDTO
+            {
+                PointOnTheMapId = pointOnTheMap.Id,
+                Value = pointOnTheMapDto.RatingValue
+            };
+            
+            if(_ratingService.AddLike(likeDTO, ip))
+            {
+                return Ok();
+            }
+
+            return BadRequest("Like Exeption");
         }
         [HttpDelete("Delete")]
         public ActionResult Delete(long Id)
@@ -116,9 +154,34 @@ namespace CleanCity.Controllers
             {
                 return NotFound();
             }
-
+            _ratingService.DeleteLikes(Id);
             _context.PointOnTheMaps.Remove(point);
             _context.SaveChanges();
+            
+            return Ok();
+        }
+        [HttpPost("Like")]
+        public ActionResult Like(LikeDTO likeDTO)
+        {
+            var point = _context.PointOnTheMaps.Include(a => a.Photos).FirstOrDefault(a => a.Id == likeDTO.PointOnTheMapId);
+
+            if (point == null)
+            {
+                return NotFound();
+            }
+
+            var ip = Request.HttpContext.Connection.RemoteIpAddress.ToString();
+
+            var newLikeDTO = new LikeDTO
+            {
+                PointOnTheMapId = likeDTO.PointOnTheMapId,
+                Value = likeDTO.Value
+            };
+
+            if (!_ratingService.AddLike(likeDTO, ip))
+            {
+                return BadRequest("Already liked");
+            }
             return Ok();
         }
     }
