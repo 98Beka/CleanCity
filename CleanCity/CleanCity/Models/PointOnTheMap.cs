@@ -6,7 +6,6 @@
         public string Description { get; set; }
         public string FIO { get; set; }
         public string Email { get; set; }
-        public float Rating { get; set; }
         public float Address { get; set; }
         public double Latitude { get; set; }
         public double Longitude { get; set; }
