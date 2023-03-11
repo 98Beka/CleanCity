@@ -61,6 +61,7 @@ namespace CleanCity.Controllers
                 Description = pointOnTheMapDto.Description,
                 FIO = pointOnTheMapDto.FIO,
                 Email = pointOnTheMapDto.Email,
+                Address = pointOnTheMapDto.Address,
                 Latitude = pointOnTheMapDto.Position[0],
                 Longitude = pointOnTheMapDto.Position[1],
                 CreatedAt = DateTime.Now,
