@@ -12,7 +12,7 @@ namespace CleanCity.Helpers
                 .ForAllMembers(x => x.Condition(
                     (src, dest, prop) =>
                     {
-                        dest.Address = new double[]
+                        dest.Position = new double[]
                         {
                                     src.Latitude,
                                     src.Longitude
