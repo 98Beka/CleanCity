@@ -7,8 +7,8 @@ namespace CleanCity.Data
 {
     public class DataContext : IdentityDbContext<IdentityUser, IdentityRole, string> {
 
-        DbSet<PointOnTheMap> PointOnTheMaps { get; set; }
-        DbSet<Photo> Photos { get; set; }
+        public DbSet<PointOnTheMap> PointOnTheMaps { get; set; }
+        public DbSet<Photo> Photos { get; set; }
 
         public DataContext(DbContextOptions<DataContext> options)
             : base(options) { }
