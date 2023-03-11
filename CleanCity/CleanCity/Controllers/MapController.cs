@@ -32,7 +32,29 @@ namespace CleanCity.Controllers
         [HttpGet("PointsOnTheMaps")]
         public async Task<IEnumerable<PointOnTheMapDTO>> GetAll()
         {
-            var points = await _context.PointOnTheMaps.Include(a => a.Photos).ToListAsync();
+            var points = await _context.PointOnTheMaps.Where(a => a.IsPublish).Include(a => a.Photos).ToListAsync();
+            var res = new List<PointOnTheMapDTO>();
+
+            foreach (var point in points)
+            {
+                var tempPoint = _mapper.Map<PointOnTheMapDTO>(point);
+                tempPoint.Rating = _ratingService.GetRating(tempPoint.Id);
+                tempPoint.FilesBase64 = new List<string>();
+
+                foreach (var photo in point.Photos)
+                {
+                    tempPoint.FilesBase64.Add(photo.ContentBase64String);
+                }
+
+                res.Add(tempPoint);
+            }
+            return res;
+        }
+        [HttpGet("UnPublishedPointsOnTheMaps")]
+        [Authorize(Roles = RoleService.AdminRole)]
+        public async Task<IEnumerable<PointOnTheMapDTO>> GetAllUnPublished()
+        {
+            var points = await _context.PointOnTheMaps.Where(a => !a.IsPublish).Include(a => a.Photos).ToListAsync();
             var res = new List<PointOnTheMapDTO>();
 
             foreach (var point in points)
