@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using CleanCity.Data;
 using CleanCity.DTO;
+using CleanCity.Helpers;
 using CleanCity.Models;
 using CleanCity.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -32,29 +33,8 @@ namespace CleanCity.Controllers
         [HttpGet("PointsOnTheMaps")]
         public async Task<IEnumerable<PointOnTheMapDTO>> GetAll()
         {
-            var points = await _context.PointOnTheMaps.Where(a => a.IsPublish).Include(a => a.Photos).ToListAsync();
-            var res = new List<PointOnTheMapDTO>();
-
-            foreach (var point in points)
-            {
-                var tempPoint = _mapper.Map<PointOnTheMapDTO>(point);
-                tempPoint.Rating = _ratingService.GetRating(tempPoint.Id);
-                tempPoint.FilesBase64 = new List<string>();
-
-                foreach (var photo in point.Photos)
-                {
-                    tempPoint.FilesBase64.Add(photo.ContentBase64String);
-                }
-
-                res.Add(tempPoint);
-            }
-            return res;
-        }
-        [HttpGet("UnPublishedPointsOnTheMaps")]
-        [Authorize(Roles = RoleService.AdminRole)]
-        public async Task<IEnumerable<PointOnTheMapDTO>> GetAllUnPublished()
-        {
-            var points = await _context.PointOnTheMaps.Where(a => !a.IsPublish).Include(a => a.Photos).ToListAsync();
+            //var points = await _context.PointOnTheMaps.Where(a => a.IsPublish).Include(a => a.Photos).ToListAsync();
+            var points = await _context.PointOnTheMaps.Include(a => a.Photos).ToListAsync();
             var res = new List<PointOnTheMapDTO>();
 
             foreach (var point in points)
@@ -181,6 +161,72 @@ namespace CleanCity.Controllers
             if (!_ratingService.AddLike(likeDTO, ip))
             {
                 return BadRequest("Already liked");
+            }
+            return Ok();
+        }
+        [HttpGet("UnPublishedPointsOnTheMaps")]
+        [Authorize(Roles = RoleService.AdminRole)]
+        public async Task<IEnumerable<PointOnTheMapDTO>> GetAllUnPublished()
+        {
+            var points = await _context.PointOnTheMaps.Where(a => !a.IsPublish).Include(a => a.Photos).ToListAsync();
+            var res = new List<PointOnTheMapDTO>();
+
+            foreach (var point in points)
+            {
+                var tempPoint = _mapper.Map<PointOnTheMapDTO>(point);
+                tempPoint.Rating = _ratingService.GetRating(tempPoint.Id);
+                tempPoint.FilesBase64 = new List<string>();
+
+                foreach (var photo in point.Photos)
+                {
+                    tempPoint.FilesBase64.Add(photo.ContentBase64String);
+                }
+
+                res.Add(tempPoint);
+            }
+            return res;
+        }
+        [HttpPost("Approve")]
+        [Authorize(Roles = RoleService.AdminRole)]
+        public ActionResult Approve(long pointId, Constants.Action action)
+        {
+            var point = _context.PointOnTheMaps.Include(a => a.Photos).FirstOrDefault(a => a.Id == pointId);
+
+            if (point == null)
+            {
+                return NotFound();
+            }
+
+            if (action == Constants.Action.Add)
+            {
+                point.IsPublish = true;
+                _context.PointOnTheMaps.Update(point);
+                _context.SaveChanges();
+
+                return Ok();
+            }
+
+            _context.PointOnTheMaps.Remove(point);
+            _context.SaveChanges();
+            return Ok();
+        }
+        [HttpPost("Deny")]
+        [Authorize(Roles = RoleService.AdminRole)]
+        public ActionResult Deny(long pointId, Constants.Action action)
+        {
+            var point = _context.PointOnTheMaps.Include(a => a.Photos).FirstOrDefault(a => a.Id == pointId);
+
+            if (point == null)
+            {
+                return NotFound();
+            }
+
+            if (action == Constants.Action.Add)
+            {
+                _context.PointOnTheMaps.Remove(point);
+                _context.SaveChanges();
+
+                return Ok();
             }
             return Ok();
         }
