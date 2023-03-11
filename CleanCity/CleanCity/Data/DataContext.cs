@@ -11,7 +11,9 @@ namespace CleanCity.Data
         public DbSet<Photo> Photos { get; set; }
 
         public DataContext(DbContextOptions<DataContext> options)
-            : base(options) { }
+            : base(options) {
+            AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+        }
         public DataContext() {
         }
     }
