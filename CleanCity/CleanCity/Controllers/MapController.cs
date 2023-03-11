@@ -6,6 +6,7 @@ using CleanCity.Models;
 using CleanCity.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
@@ -21,13 +22,15 @@ namespace CleanCity.Controllers
         private readonly IMapper _mapper;
         private readonly IWebHostEnvironment _appEnvironment;
         private readonly RatingService _ratingService;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public MapController(DataContext context, IMapper mapper, IWebHostEnvironment appEnvironment, RatingService ratingService)
+        public MapController(DataContext context, IMapper mapper, IWebHostEnvironment appEnvironment, RatingService ratingService, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
             _mapper = mapper;
             _appEnvironment = appEnvironment;
             _ratingService = ratingService;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         [HttpGet("PointsOnTheMaps")]
@@ -113,13 +116,15 @@ namespace CleanCity.Controllers
 
             var ip = Request.HttpContext.Connection.RemoteIpAddress.ToString();
 
+            var userEmail = _httpContextAccessor.HttpContext.User.Claims.FirstOrDefault()?.Value;
+
             var likeDTO = new LikeDTO
             {
                 PointOnTheMapId = pointOnTheMap.Id,
                 Value = pointOnTheMapDto.RatingValue
             };
             
-            if(_ratingService.AddLike(likeDTO, ip))
+            if(_ratingService.AddLike(likeDTO, ip, userEmail))
             {
                 return Ok();
             }
@@ -152,6 +157,8 @@ namespace CleanCity.Controllers
             }
 
             var ip = Request.HttpContext.Connection.RemoteIpAddress.ToString();
+            
+            var userEmail = _httpContextAccessor.HttpContext.User.Claims.FirstOrDefault()?.Value;
 
             var newLikeDTO = new LikeDTO
             {
@@ -159,7 +166,7 @@ namespace CleanCity.Controllers
                 Value = likeDTO.Value
             };
 
-            if (!_ratingService.AddLike(likeDTO, ip))
+            if (!_ratingService.AddLike(likeDTO, ip, userEmail))
             {
                 return BadRequest("Already liked");
             }

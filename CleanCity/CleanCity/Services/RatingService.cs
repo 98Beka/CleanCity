@@ -13,10 +13,17 @@ namespace CleanCity.Services
         {
             _context = context;
         }
-        public bool AddLike(LikeDTO likeDTO, string ip)
+        public bool AddLike(LikeDTO likeDTO, string ip, string? email = null)
         {
-            var like = _context.Likes.FirstOrDefault(a => a.PointOnTheMapId == likeDTO.PointOnTheMapId && a.Ip == ip);
-
+            Like like;
+            if(email == null)
+            {
+                like = _context.Likes.FirstOrDefault(a => a.PointOnTheMapId == likeDTO.PointOnTheMapId && a.Ip == ip);
+            }
+            else
+            {
+                like = _context.Likes.FirstOrDefault(a => a.PointOnTheMapId == likeDTO.PointOnTheMapId && a.UserEmail == email);
+            }
             if (like != null)
             {
                 return false;
