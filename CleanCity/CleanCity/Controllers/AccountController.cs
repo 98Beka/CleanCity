@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Principal;
 using System.Text;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -21,41 +22,13 @@ namespace CleanCity.Controllers
         private readonly UserManager<IdentityUser> _userManager;
         private readonly IConfiguration _configuration;
 
-        public AccountController(UserManager<IdentityUser> userManager, IConfiguration configuration) {
+        public AccountController(UserManager<IdentityUser> userManager, IConfiguration configuration,) {
             _userManager = userManager;
             _configuration = configuration;
         }
 
         [HttpPost("/Login")]
         public async Task<IActionResult> Login(LoginVM model) {
-            model.Email = model.Email.ToLower().Trim();
-            var user = await _userManager.FindByEmailAsync(model.Email);
-            if (user != null) {
-                if (await _userManager.CheckPasswordAsync(user, model.Password) == false)
-                    return BadRequest("Wrong password");
-                var userRoles = await _userManager.GetRolesAsync(user);
-
-                var authClaims = new List<Claim>
-                {
-                    new Claim(ClaimTypes.Email, user.Email),
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                };
-
-                foreach (var userRole in userRoles) {
-                    authClaims.Add(new Claim(ClaimTypes.Role, userRole));
-                }
-
-                var token = GetToken(authClaims);
-
-                return Ok(new {
-                    token = new JwtSecurityTokenHandler().WriteToken(token),
-                    expiration = token.ValidTo
-                });
-            }
-            return Unauthorized($"User '{model.Email}' hasn't found");
-        }
-        [HttpPost("/Logout")]
-        public async Task<IActionResult> Logout(LoginVM model) {
             model.Email = model.Email.ToLower().Trim();
             var user = await _userManager.FindByEmailAsync(model.Email);
             if (user != null) {
