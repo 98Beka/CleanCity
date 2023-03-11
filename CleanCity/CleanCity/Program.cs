@@ -21,13 +21,8 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-//builder.Services.AddScoped<RoleService>();
-//builder.Services.AddScoped<AuditService>();
-//builder.Services.AddSession(options => {
-//    options.Cookie.Name = ".MyApp.Session";
-//    options.IdleTimeout = TimeSpan.FromSeconds(3600);
-//    options.Cookie.IsEssential = true;
-//});
+builder.Services.AddScoped<RoleService>();
+builder.Services.AddScoped<AuditService>();
 
 var app = builder.Build();
 
