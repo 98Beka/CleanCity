@@ -73,6 +73,10 @@ namespace CleanCity.Services
 
             var pointLikes = _context.Likes.Where(a => a.PointOnTheMapId == pointId).Select(a => a.Value).Sum();
 
+            if (Constants.MaxPoint == 0)
+            {
+                return 0;
+            }
             return pointLikes / Constants.MaxPoint.Value;
         }
     }
