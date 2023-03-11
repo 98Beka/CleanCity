@@ -3,6 +3,7 @@ using System;
 using CleanCity.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CleanCity.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20230311135247_add_message")]
+    partial class add_message
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,10 +25,7 @@ namespace CleanCity.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-
             modelBuilder.Entity("CleanCity.Models.Message", b =>
-            modelBuilder.Entity("CleanCity.Models.Like", b =>
-
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -53,24 +53,6 @@ namespace CleanCity.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Messages");
-                    b.Property<string>("Ip")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<long>("PointOnTheMapId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("UserEmail")
-                        .HasColumnType("text");
-
-                    b.Property<int>("Value")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PointOnTheMapId");
-
-                    b.ToTable("Likes");
                 });
 
             modelBuilder.Entity("CleanCity.Models.Photo", b =>
@@ -125,9 +107,6 @@ namespace CleanCity.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<bool>("IsPublish")
-                        .HasColumnType("boolean");
-
                     b.Property<double>("Latitude")
                         .HasColumnType("double precision");
 
@@ -137,6 +116,9 @@ namespace CleanCity.Migrations
                     b.Property<string>("Phone")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<float>("Rating")
+                        .HasColumnType("real");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp without time zone");
@@ -340,17 +322,6 @@ namespace CleanCity.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
-                });
-
-            modelBuilder.Entity("CleanCity.Models.Like", b =>
-                {
-                    b.HasOne("CleanCity.Models.PointOnTheMap", "PointOnTheMap")
-                        .WithMany()
-                        .HasForeignKey("PointOnTheMapId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("PointOnTheMap");
                 });
 
             modelBuilder.Entity("CleanCity.Models.Photo", b =>
