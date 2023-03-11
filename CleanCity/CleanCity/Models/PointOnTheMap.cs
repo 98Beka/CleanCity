@@ -4,6 +4,8 @@
     {
         public bool IsPublish { get; set; }
         public bool IsCleaned { get; set; }
+        public bool IsRequestCleaned { get; set; }
+        public bool IsRequestDelete { get; set; }
         public string Phone { get; set; }
         public string Description { get; set; }
         public string FIO { get; set; }

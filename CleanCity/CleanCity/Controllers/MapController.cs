@@ -61,6 +61,8 @@ namespace CleanCity.Controllers
             var pointOnTheMap = new PointOnTheMap
             {
                 IsCleaned = false,
+                IsRequestCleaned = false,
+                IsRequestDelete = false,
                 Phone = pointOnTheMapDto.Phone,
                 Description = pointOnTheMapDto.Description,
                 FIO = pointOnTheMapDto.FIO,
@@ -196,6 +198,50 @@ namespace CleanCity.Controllers
             }
             return res;
         }
+        [HttpGet("RequestToDeletePointsOnTheMaps")]
+        [Authorize(Roles = RoleService.AdminRole)]
+        public async Task<IEnumerable<PointOnTheMapDTO>> RequestToDeletePointsOnTheMaps()
+        {
+            var points = await _context.PointOnTheMaps.Where(a => a.IsRequestDelete).Include(a => a.Photos).ToListAsync();
+            var res = new List<PointOnTheMapDTO>();
+
+            foreach (var point in points)
+            {
+                var tempPoint = _mapper.Map<PointOnTheMapDTO>(point);
+                tempPoint.Rating = _ratingService.GetRating(tempPoint.Id);
+                tempPoint.FilesBase64 = new List<string>();
+
+                foreach (var photo in point.Photos)
+                {
+                    tempPoint.FilesBase64.Add(photo.ContentBase64String);
+                }
+
+                res.Add(tempPoint);
+            }
+            return res;
+        }
+        [HttpGet("RequestToCleanPointsOnTheMaps")]
+        [Authorize(Roles = RoleService.AdminRole)]
+        public async Task<IEnumerable<PointOnTheMapDTO>> RequestToCleanPointsOnTheMaps()
+        {
+            var points = await _context.PointOnTheMaps.Where(a => a.IsRequestCleaned).Include(a => a.Photos).ToListAsync();
+            var res = new List<PointOnTheMapDTO>();
+
+            foreach (var point in points)
+            {
+                var tempPoint = _mapper.Map<PointOnTheMapDTO>(point);
+                tempPoint.Rating = _ratingService.GetRating(tempPoint.Id);
+                tempPoint.FilesBase64 = new List<string>();
+
+                foreach (var photo in point.Photos)
+                {
+                    tempPoint.FilesBase64.Add(photo.ContentBase64String);
+                }
+
+                res.Add(tempPoint);
+            }
+            return res;
+        }
         [HttpPost("Approve")]
         [Authorize(Roles = RoleService.AdminRole)]
         public ActionResult Approve(long pointId, Constants.Action action)
@@ -221,6 +267,7 @@ namespace CleanCity.Controllers
             if (action == Constants.Action.Clean)
             {
                 point.IsCleaned = true;
+                point.IsRequestCleaned = false;
                 _context.PointOnTheMaps.Update(point);
                 _context.SaveChanges();
             }

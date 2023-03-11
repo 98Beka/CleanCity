@@ -22,7 +22,7 @@ namespace CleanCity.Controllers
         private readonly UserManager<IdentityUser> _userManager;
         private readonly IConfiguration _configuration;
 
-        public AccountController(UserManager<IdentityUser> userManager, IConfiguration configuration,) {
+        public AccountController(UserManager<IdentityUser> userManager, IConfiguration configuration) {
             _userManager = userManager;
             _configuration = configuration;
         }
