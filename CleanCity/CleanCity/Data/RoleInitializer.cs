@@ -11,14 +11,10 @@ namespace CleanCity.Data {
             if (await roleManager.FindByNameAsync("admin") == null) {
                 await roleManager.CreateAsync(new IdentityRole("admin"));
             }
-            if (await roleManager.FindByNameAsync("registriesSender") == null) {
-                await roleManager.CreateAsync(new IdentityRole("registriesSender"));
-            }
             if (await userManager.FindByNameAsync(adminEmail) == null) {
                 IdentityUser admin = new IdentityUser { Email = adminEmail, UserName = adminEmail };
                 IdentityResult result = await userManager.CreateAsync(admin, password);
                 if (result.Succeeded) {
-                    await userManager.AddToRoleAsync(admin, "registriesSender");
                     await userManager.AddToRoleAsync(admin, "user");
                     await userManager.AddToRoleAsync(admin, "admin");
                 }
