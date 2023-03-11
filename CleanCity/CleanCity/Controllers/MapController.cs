@@ -134,22 +134,6 @@ namespace CleanCity.Controllers
 
             return BadRequest("Like Exeption");
         }
-        [HttpDelete("Delete")]
-        [Authorize(Roles = RoleService.AdminRole)]
-        public ActionResult Delete(long Id)
-        {
-            var point = _context.PointOnTheMaps.Include(a => a.Photos).FirstOrDefault(a => a.Id == Id);
-
-            if (point == null)
-            {
-                return NotFound();
-            }
-            _ratingService.DeleteLikes(Id);
-            _context.PointOnTheMaps.Remove(point);
-            _context.SaveChanges();
-            
-            return Ok();
-        }
         [HttpPost("Like")]
         public ActionResult Like(LikeDTO likeDTO)
         {
@@ -174,6 +158,52 @@ namespace CleanCity.Controllers
             {
                 return BadRequest("Already liked");
             }
+            return Ok();
+        }
+        [HttpPost("RequestToDelete")]
+        public ActionResult RequestToDelete(long pointId)
+        {
+            var point = _context.PointOnTheMaps.Include(a => a.Photos).FirstOrDefault(a => a.Id == pointId);
+
+            if (point == null)
+            {
+                return NotFound();
+            }
+            point.IsRequestDelete = true;
+            _context.PointOnTheMaps.Update(point);
+            _context.SaveChanges();
+
+            return Ok();
+        }
+        [HttpPost("RequestToClean")]
+        public ActionResult RequestToClean(long pointId)
+        {
+            var point = _context.PointOnTheMaps.Include(a => a.Photos).FirstOrDefault(a => a.Id == pointId);
+
+            if (point == null)
+            {
+                return NotFound();
+            }
+            point.IsRequestCleaned = true;
+            _context.PointOnTheMaps.Update(point);
+            _context.SaveChanges();
+
+            return Ok();
+        }
+        [HttpDelete("Delete")]
+        [Authorize(Roles = RoleService.AdminRole)]
+        public ActionResult Delete(long Id)
+        {
+            var point = _context.PointOnTheMaps.Include(a => a.Photos).FirstOrDefault(a => a.Id == Id);
+
+            if (point == null)
+            {
+                return NotFound();
+            }
+            _ratingService.DeleteLikes(Id);
+            _context.PointOnTheMaps.Remove(point);
+            _context.SaveChanges();
+            
             return Ok();
         }
         [HttpGet("UnPublishedPointsOnTheMaps")]
@@ -261,6 +291,7 @@ namespace CleanCity.Controllers
             }
             if (action == Constants.Action.Delete)
             {
+                _ratingService.DeleteLikes(pointId);
                 _context.PointOnTheMaps.Remove(point);
                 _context.SaveChanges();
             }
