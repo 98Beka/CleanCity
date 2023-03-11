@@ -6,6 +6,7 @@ using CleanCity.Models;
 using CleanCity.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
@@ -21,13 +22,15 @@ namespace CleanCity.Controllers
         private readonly IMapper _mapper;
         private readonly IWebHostEnvironment _appEnvironment;
         private readonly RatingService _ratingService;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public MapController(DataContext context, IMapper mapper, IWebHostEnvironment appEnvironment, RatingService ratingService)
+        public MapController(DataContext context, IMapper mapper, IWebHostEnvironment appEnvironment, RatingService ratingService, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
             _mapper = mapper;
             _appEnvironment = appEnvironment;
             _ratingService = ratingService;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         [HttpGet("PointsOnTheMaps")]
@@ -57,6 +60,7 @@ namespace CleanCity.Controllers
         {
             var pointOnTheMap = new PointOnTheMap
             {
+                IsCleaned = false,
                 Phone = pointOnTheMapDto.Phone,
                 Description = pointOnTheMapDto.Description,
                 FIO = pointOnTheMapDto.FIO,
@@ -113,13 +117,15 @@ namespace CleanCity.Controllers
 
             var ip = Request.HttpContext.Connection.RemoteIpAddress.ToString();
 
+            var userEmail = _httpContextAccessor.HttpContext.User.Claims.FirstOrDefault()?.Value;
+
             var likeDTO = new LikeDTO
             {
                 PointOnTheMapId = pointOnTheMap.Id,
                 Value = pointOnTheMapDto.RatingValue
             };
             
-            if(_ratingService.AddLike(likeDTO, ip))
+            if(_ratingService.AddLike(likeDTO, ip, userEmail))
             {
                 return Ok();
             }
@@ -127,6 +133,7 @@ namespace CleanCity.Controllers
             return BadRequest("Like Exeption");
         }
         [HttpDelete("Delete")]
+        [Authorize(Roles = RoleService.AdminRole)]
         public ActionResult Delete(long Id)
         {
             var point = _context.PointOnTheMaps.Include(a => a.Photos).FirstOrDefault(a => a.Id == Id);
@@ -152,6 +159,8 @@ namespace CleanCity.Controllers
             }
 
             var ip = Request.HttpContext.Connection.RemoteIpAddress.ToString();
+            
+            var userEmail = _httpContextAccessor.HttpContext.User.Claims.FirstOrDefault()?.Value;
 
             var newLikeDTO = new LikeDTO
             {
@@ -159,7 +168,7 @@ namespace CleanCity.Controllers
                 Value = likeDTO.Value
             };
 
-            if (!_ratingService.AddLike(likeDTO, ip))
+            if (!_ratingService.AddLike(likeDTO, ip, userEmail))
             {
                 return BadRequest("Already liked");
             }
@@ -203,12 +212,19 @@ namespace CleanCity.Controllers
                 point.IsPublish = true;
                 _context.PointOnTheMaps.Update(point);
                 _context.SaveChanges();
-
-                return Ok();
+            }
+            if (action == Constants.Action.Delete)
+            {
+                _context.PointOnTheMaps.Remove(point);
+                _context.SaveChanges();
+            }
+            if (action == Constants.Action.Clean)
+            {
+                point.IsCleaned = true;
+                _context.PointOnTheMaps.Update(point);
+                _context.SaveChanges();
             }
 
-            _context.PointOnTheMaps.Remove(point);
-            _context.SaveChanges();
             return Ok();
         }
         [HttpPost("Deny")]
@@ -226,9 +242,25 @@ namespace CleanCity.Controllers
             {
                 _context.PointOnTheMaps.Remove(point);
                 _context.SaveChanges();
-
-                return Ok();
             }
+
+            return Ok();
+        }
+        [HttpPost("Clean")]
+        [Authorize(Roles = RoleService.AdminRole)]
+        public ActionResult Clean(long pointId)
+        {
+            var point = _context.PointOnTheMaps.Include(a => a.Photos).FirstOrDefault(a => a.Id == pointId);
+
+            if (point == null)
+            {
+                return NotFound();
+            }
+
+            point.IsCleaned = true;
+            _context.PointOnTheMaps.Update(point);
+            _context.SaveChanges();
+
             return Ok();
         }
     }
