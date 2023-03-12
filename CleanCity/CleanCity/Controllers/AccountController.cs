@@ -80,11 +80,25 @@ namespace CleanCity.Controllers
                 SecurityStamp = Guid.NewGuid().ToString(),
             };
             var result = await _userManager.CreateAsync(user, model.Password);
+
             if (!result.Succeeded)
                 return StatusCode(StatusCodes.Status500InternalServerError, result.Errors);
-            else
-                await _userManager.AddToRoleAsync(user, role);
-            return Ok(new ResponseVM { Status = "Success", Message = "User created successfully!" });
+
+            await _userManager.AddToRoleAsync(user, role);
+            var userRoles = await _userManager.GetRolesAsync(user);
+
+            var authClaims = new List<Claim>
+            {
+                    new Claim(ClaimTypes.Email, user.Email),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                };
+
+            foreach (var userRole in userRoles) {
+                authClaims.Add(new Claim(ClaimTypes.Role, userRole));
+            }
+
+            var token = GetToken(authClaims);
+            return Ok(new {Status = "Success", Message = "User created successfully!", Token = new JwtSecurityTokenHandler().WriteToken(token), Name = user.UserName, Email = user.Email, Role = userRoles.Last()});
         }
 
         private JwtSecurityToken GetToken(List<Claim> authClaims) {
