@@ -40,18 +40,46 @@ namespace CleanCity.Controllers
             var points = await _context.PointOnTheMaps.Include(a => a.Photos).ToListAsync();
             var res = new List<PointOnTheMapDTO>();
 
-            foreach (var point in points)
+            var ip = Request.HttpContext.Connection.RemoteIpAddress.ToString();
+
+            var userEmail = _httpContextAccessor.HttpContext.User.Claims.FirstOrDefault()?.Value;
+
+            if(userEmail != null)
             {
-                var tempPoint = _mapper.Map<PointOnTheMapDTO>(point);
-                tempPoint.Rating = _ratingService.GetRating(tempPoint.Id);
-                tempPoint.FilesBase64 = new List<string>();
-
-                foreach (var photo in point.Photos)
+                foreach (var point in points)
                 {
-                    tempPoint.FilesBase64.Add(photo.ContentBase64String);
-                }
+                    var tempPoint = _mapper.Map<PointOnTheMapDTO>(point);
+                    tempPoint.Rating = _ratingService.GetRating(tempPoint.Id);
+                    var like = _context.Likes.FirstOrDefault(a => a.PointOnTheMapId == tempPoint.Id && a.UserEmail == userEmail);
+                    tempPoint.LikeId = like == null ? 0 : like.Id;
+                    tempPoint.LikeValue = like == null ? 0 : like.Value;
+                    tempPoint.FilesBase64 = new List<string>();
 
-                res.Add(tempPoint);
+                    foreach (var photo in point.Photos)
+                    {
+                        tempPoint.FilesBase64.Add(photo.ContentBase64String);
+                    }
+
+                    res.Add(tempPoint);
+                }
+            }
+            else
+            {
+                foreach (var point in points)
+                {
+                    var tempPoint = _mapper.Map<PointOnTheMapDTO>(point);
+                    tempPoint.Rating = _ratingService.GetRating(tempPoint.Id);
+                    var like = _context.Likes.FirstOrDefault(a => a.PointOnTheMapId == tempPoint.Id && a.UserEmail == userEmail);
+                    tempPoint.LikeId = like == null ? 0 : like.Id;
+                    tempPoint.LikeValue = like == null ? 0 : like.Value; tempPoint.FilesBase64 = new List<string>();
+
+                    foreach (var photo in point.Photos)
+                    {
+                        tempPoint.FilesBase64.Add(photo.ContentBase64String);
+                    }
+
+                    res.Add(tempPoint);
+                }
             }
             return res;
         }
@@ -158,6 +186,20 @@ namespace CleanCity.Controllers
             {
                 return BadRequest("Already liked");
             }
+            return Ok();
+        }
+        [HttpPut("UpdateLike")]
+        public ActionResult UpdateLike(long id, int value)
+        {
+            var like = _context.Likes.FirstOrDefault(a => a.Id == id);
+            if(like == null)
+            {
+                return NotFound();
+            }
+
+            like.Value = value;
+            _context.Likes.Update(like);
+            _context.SaveChanges();
             return Ok();
         }
         [HttpPost("RequestToDelete")]
