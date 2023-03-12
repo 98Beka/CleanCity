@@ -36,8 +36,7 @@ namespace CleanCity.Controllers
         [HttpGet("PointsOnTheMaps")]
         public async Task<IEnumerable<PointOnTheMapDTO>> GetAll()
         {
-            //var points = await _context.PointOnTheMaps.Where(a => a.IsPublish).Include(a => a.Photos).ToListAsync();
-            var points = await _context.PointOnTheMaps.Include(a => a.Photos).ToListAsync();
+            var points = await _context.PointOnTheMaps.Where(a => a.IsPublish).Include(a => a.Photos).ToListAsync();
             var res = new List<PointOnTheMapDTO>();
 
             var ip = Request.HttpContext.Connection.RemoteIpAddress.ToString();
